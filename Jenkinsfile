@@ -27,18 +27,9 @@ node {
 
     stage('Scanning Image') {
         steps {
-            script {
-                sh """
-                    # Installer Grype si ce n'est pas déjà fait
-                    if ! command -v grype &> /dev/null
-                    then
-                        curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh
-                    fi
-
-                    # Scanner l'image Docker
-                    grype houmeyra/tpsec105 --fail-on high
-                """
+                sh 'grype houmeyra/tpsec105:latest > grype.txt'
+                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
+                sh ' rm -rf grype.txt'
             }
-        }
     }
 }
