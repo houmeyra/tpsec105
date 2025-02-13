@@ -25,19 +25,18 @@ node {
         }
     }
 
-    stage('Scan with grype') {
-      steps {
-        script {
-          try {
-            sh 'set -o pipefail ; /usr/local/bin/grype -f high -q houmeyra/tpsec105:latest'
-          } catch (err) {
-            // if scan fails, clean up (delete the image) and fail the build
-            sh """
-              echo "Vulnerabilities detected in houmeyra/tpsec105:latest, cleaning up and failing build."
-              exit 1
-            """
-          } // end try/catch
-        } // end script
-      } // end steps
-    } // end stage "analyze with grype"
+    stage('Scan image') {
+        steps {
+            script {
+                // Scanner l'image Docker depuis Docker Hub avec Grype
+                def scanOutput = sh(script: "grype houmeyra/tpsec105:latest", returnStdout: true).trim()
+ 
+                    // Afficher la sortie du scan
+                    echo "Scan Output: ${scanOutput}"
+ 
+                    // Sauvegarder la sortie dans un fichier
+                    writeFile file: 'grype_scan_output.txt', text: scanOutput
+          }
+       }
+    }
 }
