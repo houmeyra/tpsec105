@@ -24,4 +24,10 @@ node {
             app.push("latest")
         }
     }
+
+    stage('Scanning Image') {
+        steps {
+            grype houmeyra/tpsec105 --fail-on high
+        }
+    }
 }
