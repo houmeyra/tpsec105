@@ -28,8 +28,6 @@ node {
     stage('Scanning Image') {
         steps {
                 sh 'grype houmeyra/tpsec105:latest > grype.txt'
-                archiveArtifacts allowEmptyArchive: true, artifacts: 'grype.txt', fingerprint: true, followSymlinks: false, onlyIfSuccessful: true
-                sh ' rm -rf grype.txt'
             }
     }
 }
