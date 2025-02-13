@@ -25,9 +25,20 @@ node {
         }
     }
 
-    stage('Scanning Image') {
-        steps {
-                sh 'grype houmeyra/tpsec105:latest > grype.txt'
-            }
-    }
+    stage('Analyze with grype') {
+      steps {
+        script {
+          try {
+            sh 'set -o pipefail ; /usr/local/bin/grype -f high -q ${REPOSITORY}:${BUILD_NUMBER}'
+          } catch (err) {
+            // if scan fails, clean up (delete the image) and fail the build
+            sh """
+              echo "Vulnerabilities detected in ${REPOSITORY}:${BUILD_NUMBER}, cleaning up and failing build."
+              docker rmi ${REPOSITORY}:${BUILD_NUMBER}
+              exit 1
+            """
+          } // end try/catch
+        } // end script
+      } // end steps
+    } // end stage "analyze with grype"
 }
