@@ -36,7 +36,7 @@ node {
             subject: "Rapport de scan de l'image Docker",
             body: "Bonjour,\n\nVeuillez trouver ci-joint le rapport de scan de l'image Docker.\n\nCordialement.",
             attachmentsPattern: 'grype_scan_output.txt',
-            to: 'aicha.ba1@orange-sonatel.com',
+            to: 'aicha.ba1@orange-sonatel.com,meweelvis.balo@orange-sonatel.com',
             from: 'scan-vulns@orange-sonatel.com'
         )
     }
