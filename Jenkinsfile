@@ -1,5 +1,6 @@
 node {
     def app
+    def scanFile = "grype_scan_output-$(date +%d%m%Y).txt"
 
     stage('Clone repository') {
         // Clonage du dépôt Git
@@ -21,12 +22,39 @@ node {
 
     stage('Scan image') {
         script {
-            // Scanner l'image Docker avec Grype
-            def scanOutput = sh(script: "grype houmeyra/tpsec105:latest", returnStdout: true).trim()
+            // Exécuter le scan et capturer la sortie dans un fichier
+            def scanStatus = sh(script: "grype houmeyra/tpsec105:latest > ${scanFile}", returnStatus: true)
 
-            // Affichage et sauvegarde du scan
-            echo "Scan Output: ${scanOutput}"
-            writeFile file: 'grype_scan_output.txt', text: scanOutput
+            // Vérifier le statut du scan
+            if (scanStatus != 0) {
+                echo "❌ Scan Grype a détecté des vulnérabilités critiques !"
+                error("Build échoué à cause de vulnérabilités détectées.")
+            } else {
+                echo "✅ Scan Grype terminé avec succès. Aucun problème critique détecté."
+            }
+
+            // Afficher la sortie du fichier
+            sh "cat ${scanFile}"
+        }
+    }
+
+    stage('Send Report') {
+        script {
+            // Vérifier si le fichier existe avant d'envoyer l'email
+            if (fileExists(scanFile)) {
+                echo "📩 Envoi du rapport de scan par email..."
+
+                emailext subject: "Rapport de Scan Grype - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                         body: """Bonjour,\n
+                                 Voici le rapport de scan Grype pour l'image Docker : houmeyra/tpsec105:latest\n
+                                 Consultez le fichier attaché pour plus de détails.\n
+                                 Cordialement,\n
+                                 Votre pipeline Jenkins""",
+                         recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+                         attachmentsPattern: scanFile
+            } else {
+                echo "⚠️ Le fichier ${scanFile} n'existe pas, email non envoyé."
+            }
         }
     }
 }
